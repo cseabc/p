@@ -1,0 +1,27 @@
+//SYNCHRONISED
+#include <mpi.h>
+#include <stdio.h>
+
+int main(int argc, char** argv) {
+    int rank, size, broadcast_value;
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    // Synchronize processes at the barrier before broadcasting
+    printf("Process %d waiting at barrier...\n", rank);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        broadcast_value = 100;
+        printf("Process %d broadcasting value %d\n", rank, broadcast_value);
+    }
+
+    // Blocking broadcast
+    MPI_Bcast(&broadcast_value, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    printf("Process %d received the broadcasted value: %d\n", rank, broadcast_value);
+
+    MPI_Finalize();
+    return 0;
+}

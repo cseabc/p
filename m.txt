@@ -1,0 +1,44 @@
+#include <stdio.h>
+#include <pthread.h>
+#define MAX 100000
+int arr[MAX], temp[MAX], n;
+
+typedef struct { int l, r; } ThreadData;
+
+void merge(int l, int m, int r) {
+    int i = l, j = m + 1, k = l;
+    while (i <= m && j <= r) temp[k++] = arr[i] <= arr[j] ? arr[i++] : arr[j++];
+    while (i <= m) temp[k++] = arr[i++];
+    while (j <= r) temp[k++] = arr[j++];
+    for (i = l; i <= r; i++) arr[i] = temp[i];
+}
+
+void *merge_sort(void *arg) {
+    ThreadData *d = (ThreadData *)arg;
+    int l = d->l, r = d->r, m = (l + r) / 2;
+    if (l < r) {
+        ThreadData ld = {l, m}, rd = {m + 1, r};
+        pthread_t lt, rt;
+        pthread_create(&lt, NULL, merge_sort, &ld);
+        pthread_create(&rt, NULL, merge_sort, &rd);
+        pthread_join(lt, NULL); pthread_join(rt, NULL);
+        merge(l, m, r);
+    }
+    return NULL;
+}
+
+int main() {
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++) scanf("%d", &arr[i]);
+    ThreadData d = {0, n - 1};
+    pthread_t t;
+    pthread_create(&t, NULL, merge_sort, &d);
+    pthread_join(t, NULL);
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    return 0;
+}
+
+
+
+
+

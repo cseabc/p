@@ -1,0 +1,131 @@
+import java.net.*;
+import java.io.*;
+
+public class ChatClient {
+    private Socket socket;
+    private PrintWriter out;
+    private BufferedReader console;
+
+    public ChatClient(String host, int port) throws IOException {
+        socket = new Socket(host, port);
+        console = new BufferedReader(new InputStreamReader(System.in));
+        out = new PrintWriter(socket.getOutputStream(), true);
+        new ChatClientThread(socket).start();  // Start listening thread
+
+        // Send console input to server
+        String message;
+        while ((message = console.readLine()) != null) {
+            out.println(message);
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        if (args.length != 2) System.out.println("Usage: java ChatClient <host> <port>");
+        else new ChatClient(args[0], Integer.parseInt(args[1]));
+    }
+}
+
+
+------------------------------------------------------------------------------------------------
+
+import java.io.*;
+import java.net.*;
+
+public class ChatClientThread extends Thread {
+    private Socket socket;
+
+    public ChatClientThread(Socket socket) {
+        this.socket = socket;
+    }
+
+    public void run() {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+            String message;
+            while ((message = in.readLine()) != null) {
+                System.out.println(message);  // Print incoming message
+            }
+        } catch (IOException e) {
+            System.out.println("Disconnected from server.");
+        }
+    }
+}
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+
+import java.net.*;
+import java.io.*;
+import java.util.*;
+
+public class ChatServer {
+    private ServerSocket serverSocket;
+    private List<ChatServerThread> clients = Collections.synchronizedList(new ArrayList<>());
+
+    public ChatServer(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
+        System.out.println("Chat server started on port " + port);
+        while (true) {
+            Socket socket = serverSocket.accept();
+            ChatServerThread clientThread = new ChatServerThread(socket, this);
+            clients.add(clientThread);
+            clientThread.start();
+        }
+    }
+
+    public synchronized void broadcast(String message) {
+        for (ChatServerThread client : clients) {
+            client.sendMessage(message);
+        }
+    }
+
+    public synchronized void removeClient(ChatServerThread client) {
+        clients.remove(client);
+    }
+
+    public static void main(String[] args) throws IOException {
+        if (args.length != 1) System.out.println("Usage: java ChatServer <port>");
+        else new ChatServer(Integer.parseInt(args[0]));
+    }
+}
+
+
+
+------------------------------------------------------------------------------------------------
+
+
+import java.io.*;
+import java.net.*;
+
+public class ChatServerThread extends Thread {
+    private Socket socket;
+    private ChatServer server;
+    private PrintWriter out;
+
+    public ChatServerThread(Socket socket, ChatServer server) throws IOException {
+        this.socket = socket;
+        this.server = server;
+        this.out = new PrintWriter(socket.getOutputStream(), true);
+    }
+
+    public void sendMessage(String message) {
+        out.println(message);
+    }
+
+    public void run() {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+            String message;
+            while ((message = in.readLine()) != null) {
+                server.broadcast(message);  // Broadcast message to all clients
+            }
+        } catch (IOException e) {
+            System.out.println("Client disconnected.");
+        } finally {
+            server.removeClient(this); // Remove client from list
+            try { socket.close(); } catch (IOException ignored) {}
+        }
+    }
+}
+

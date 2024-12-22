@@ -1,0 +1,73 @@
+import java.net.*;
+import java.io.*;
+
+public class TCPClient {
+    public static void main(String[] args) throws IOException {
+        Socket socket = new Socket(args[1], 8115);
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+        DataInputStream in = new DataInputStream(socket.getInputStream());
+        out.writeUTF(args[0]);
+        String reply = in.readUTF();
+        System.out.println("Reply: " + reply);
+        socket.close();
+    }
+}
+
+import java.net.*;
+import java.io.*;
+
+public class TCPServer {
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(8115);
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+            DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+            String data = in.readUTF();
+            out.writeUTF(data);
+            System.out.print(data);
+            clientSocket.close();
+        }
+    }
+}
+
+****************************************************************************************************************
+
+
+
+
+import java.net.*;
+
+public class UDPClient {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket socket = new DatagramSocket();
+        byte[] data = args[0].getBytes();
+        InetAddress address = InetAddress.getByName(args[1]);
+        DatagramPacket packet = new DatagramPacket(data, data.length, address, 8120);
+        socket.send(packet);
+        byte[] buffer = new byte[1000];
+        DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
+        socket.receive(reply);
+        System.out.println("Reply: " + new String(reply.getData(), 0, reply.getLength()));
+        socket.close();
+    }
+}
+
+import java.net.*;
+
+public class UDPServer {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket socket = new DatagramSocket(8120);
+        byte[] buffer = new byte[1000];
+        while (true) {
+            DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+            socket.receive(packet);
+            //System.out.print(buffer);
+            String msg = new String(packet.getData(),0, packet.getLength());
+            System.out.print(msg);
+            DatagramPacket reply = new DatagramPacket(packet.getData(), packet.getLength(),packet.getAddress(),packet.getPort());
+            socket.send(reply);
+            
+        }
+    }
+}

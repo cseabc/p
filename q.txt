@@ -1,0 +1,43 @@
+
+#include <stdio.h>
+#include <pthread.h>
+#define MAX 100000
+int arr[MAX], n;
+
+typedef struct { int l, r; } ThreadData;
+
+int partition(int l, int r) {
+    int p = arr[r], i = l - 1, tmp;
+    for (int j = l; j < r; j++)
+        if (arr[j] <= p) { tmp = arr[++i]; arr[i] = arr[j]; arr[j] = tmp; }
+    tmp = arr[i + 1]; arr[i + 1] = arr[r]; arr[r] = tmp;
+    return i + 1;
+}
+
+void *quick_sort(void *arg) {
+    ThreadData *d = (ThreadData *)arg;
+    int l = d->l, r = d->r;
+    if (l < r) {
+        int pi = partition(l, r);
+        ThreadData ld = {l, pi - 1}, rd = {pi + 1, r};
+        pthread_t lt, rt;
+        pthread_create(&lt, NULL, quick_sort, &ld);
+        pthread_create(&rt, NULL, quick_sort, &rd);
+        pthread_join(lt, NULL); pthread_join(rt, NULL);
+    }
+    return NULL;
+}
+
+int main() {
+    scanf("%d", &n);
+    for (int i = 0; i < n; i++) scanf("%d", &arr[i]);
+    ThreadData d = {0, n - 1};
+    pthread_t t;
+    pthread_create(&t, NULL, quick_sort, &d);
+    pthread_join(t, NULL);
+    for (int i = 0; i < n; i++) printf("%d ", arr[i]);
+    return 0;
+}
+
+
+

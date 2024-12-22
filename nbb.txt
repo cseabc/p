@@ -1,0 +1,33 @@
+//NON BLOCKING BROADCAST
+ #include <mpi.h>
+#include <stdio.h>
+
+int main(int argc, char** argv) {
+    int rank, size, broadcast_value;
+    MPI_Request request;
+    MPI_Status status;
+
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    // Synchronize processes at the barrier before broadcasting
+    printf("Process %d waiting at barrier...\n", rank);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    if (rank == 0) {
+        broadcast_value = 42;
+        printf("Process %d initiating non-blocking broadcast of value %d\n", rank, broadcast_value);
+    }
+
+    // Non-blocking broadcast
+    MPI_Ibcast(&broadcast_value, 1, MPI_INT, 0, MPI_COMM_WORLD, &request);
+    printf("Process %d is doing independent work while waiting for broadcast.\n", rank);
+
+    // Wait for the broadcast to complete
+    MPI_Wait(&request, &status);
+    printf("Process %d received the broadcasted value: %d\n", rank, broadcast_value);
+
+    MPI_Finalize();
+    return 0;
+}

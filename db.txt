@@ -1,0 +1,74 @@
+import java.io.*;
+import java.net.*;
+import java.sql.*;
+
+public class Server1 {
+    public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(5123)) { //5124,5125
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            while (true) {
+                try (Socket client = serverSocket.accept();
+                     DataInputStream input = new DataInputStream(client.getInputStream());
+                     PrintStream output = new PrintStream(client.getOutputStream());
+                     Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dns", "root", "");
+                     Statement stmt = con.createStatement()) {
+
+                    String domain = input.readLine();
+                    ResultSet rs = stmt.executeQuery("SELECT ipadd, port FROM Root WHERE name='" + domain + "'"); // Yahoo,Google
+                    output.println(rs.next() ? rs.getString("ipadd") + "," + rs.getString("port") : "0,0");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+**********************************************************************************************************************
+
+import java.io.*;
+import java.net.*;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Client {
+    public static void main(String[] args) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+             Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/dns", "root", "");
+             Statement stmt = con.createStatement()) {
+
+            System.out.print("Enter domain (e.g., x.y.z or y.z): ");
+            String[] domains = reader.readLine().split("\\.");
+            if (domains.length < 2) { System.out.println("Invalid format."); return; }
+
+            List<String> ipParts = new ArrayList<>();
+            ResultSet rs = stmt.executeQuery("SELECT ipadd, port FROM Client WHERE name='" + domains[domains.length - 1] + "'");
+            if (!rs.next()) { System.out.println("Top-level domain not found."); return; }
+
+            ipParts.add(rs.getString("ipadd"));
+            int port = rs.getInt("port");
+
+            for (int i = domains.length - 2; i >= 0; i--) {
+                try (Socket socket = new Socket("127.0.0.1", port);
+                     DataInputStream input = new DataInputStream(socket.getInputStream());
+                     PrintStream output = new PrintStream(socket.getOutputStream())) {
+
+                    output.println(domains[i]);
+                    String[] response = input.readLine().split(",");
+                    if ("0".equals(response[0])) { System.out.println("Domain not found."); return; }
+                    ipParts.add(0, response[0]);
+                    port = Integer.parseInt(response[1]);
+                } catch (IOException e) {
+                    System.err.println("Connection failed on port " + port);
+                    return;
+                }
+            }
+            System.out.println("Resolved IP: " + String.join(".", ipParts));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+

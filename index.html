@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        iframe {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Viewer</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Download</th>
+                <th>View</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Repeat rows dynamically for each file -->
+            <tr>
+                <td><a href="omp.txt" download> omp.txt</a></td>
+                <td><button onclick="viewFile('omp.txt')">  omp.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="va.txt" download> va.txt</a></td>
+                <td><button onclick="viewFile('va.txt')">  va.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="vm.txt" download> vm.txt</a></td>
+                <td><button onclick="viewFile('vm.txt')">  vm.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="mpi.txt" download> mpi.txt</a></td>
+                <td><button onclick="viewFile('mpi.txt')">  mpi.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="sb.txt" download> sb.txt</a></td>
+                <td><button onclick="viewFile('sb.txt')">  sb.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="nbb.txt" download> nbb.txt</a></td>
+                <td><button onclick="viewFile('nbb.txt')">  nbb.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="p.txt" download> p.txt</a></td>
+                <td><button onclick="viewFile('p.txt')">  p.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="m.txt" download> m.txt</a></td>
+                <td><button onclick="viewFile('m.txt')">  m.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="q.txt" download> q.txt</a></td>
+                <td><button onclick="viewFile('q.txt')">  q.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="tu.txt" download> tu.txt</a></td>
+                <td><button onclick="viewFile('tu.txt')">  tu.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="db.txt" download> db.txt</a></td>
+                <td><button onclick="viewFile('db.txt')">  db.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="rmi.txt" download> rmi.txt</a></td>
+                <td><button onclick="viewFile('rmi.txt')">  rmi.txt</button></td>
+            </tr>
+            <tr>
+                <td><a href="cs.txt" download> cs.txt</a></td>
+                <td><button onclick="viewFile('cs.txt')">  cs.txt</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <iframe id="fileViewer" src=""></iframe>
+
+    <script>
+        function viewFile(filename) {
+            const viewer = document.getElementById('fileViewer');
+            viewer.src = filename;
+            viewer.style.display = "block";
+        }
+    </script>
+</body>
+</html>
